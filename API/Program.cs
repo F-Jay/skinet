@@ -1,3 +1,4 @@
+using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +16,28 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Development.json")
             .Build();
 builder.Services.AddDbContext<StoreContext>(x => x.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+// Services - Ordering is not important.
+builder.Services.AddScoped<IProductRepository,ProductRepository>();
+
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+    try
+    {
+        var context = services.GetRequiredService<StoreContext>();
+        await context.Database.MigrateAsync(); // Create Database If not already exists, and apply any pending migrations to the database.
+        await StoreContextSeed.SeedAsync(context, loggerFactory); // Seed Data Into Database.
+    }catch(Exception ex)
+    {
+        var logger = loggerFactory.CreateLogger<Program>();
+        logger.LogError(ex, "An error occurred during migration - Logged in Program.cs");
+    }
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
