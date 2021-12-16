@@ -1,3 +1,5 @@
+using API.Helpers;
+using AutoMapper;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +20,12 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 builder.Services.AddDbContext<StoreContext>(x => x.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 // Services - Ordering is not important.
 builder.Services.AddScoped<IProductRepository,ProductRepository>();
+// Add Generic Service
+builder.Services.AddScoped(typeof(IGenericRepository<>),(typeof(GenericRepository<>)));
+// Add Automapper as a Service.
+builder.Services.AddAutoMapper(typeof(MappingProfiles));
 
 var app = builder.Build();
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -49,6 +54,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection(); // If used Http url - Will automatical redirect to Https urls
 
 app.UseAuthorization();
+
+app.UseStaticFiles(); // Added to serve static files from the API - Product Images
 
 app.MapControllers();
 
