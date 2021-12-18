@@ -4,6 +4,7 @@ using API.Middleware;
 using AutoMapper;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,14 @@ builder.Services.AddDbContext<StoreContext>(x => x.UseSqlite(configuration.GetCo
 
 builder.AddApplicationServices(); // Custom Extension
 builder.AddSwaggerDocumentation(); // Custom Extension
+
+builder.Services.AddCors( opt =>
+{
+    opt.AddPolicy("CorsPolicy", policy =>
+    {
+         policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200");
+    });
+});
 
 // Add Automapper as a Service.
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
@@ -53,6 +62,8 @@ app.UseMiddleware<ExceptionMiddleware>(); // Use customer exception middle ware.
 app.UseStatusCodePagesWithReExecute("/errors/{}");
 
 app.UseHttpsRedirection(); // If used Http url - Will automatical redirect to Https urls
+
+app.UseCors("CorsPolicy");
 
 app.UseAuthorization();
 
