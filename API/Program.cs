@@ -1,6 +1,7 @@
+using API.Extensions;
 using API.Helpers;
+using API.Middleware;
 using AutoMapper;
-using Core.Interfaces;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,19 +10,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 // Add Connection String as Service - SQLlite
 IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
             .AddJsonFile("appsettings.Development.json")
             .Build();
 builder.Services.AddDbContext<StoreContext>(x => x.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
-// Services - Ordering is not important.
-builder.Services.AddScoped<IProductRepository,ProductRepository>();
-// Add Generic Service
-builder.Services.AddScoped(typeof(IGenericRepository<>),(typeof(GenericRepository<>)));
+
+builder.AddApplicationServices(); // Custom Extension
+builder.AddSwaggerDocumentation(); // Custom Extension
+
 // Add Automapper as a Service.
 builder.Services.AddAutoMapper(typeof(MappingProfiles));
 
@@ -44,16 +46,17 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Configure the HTTP request pipeline. - Ordering is IMPORTANT!
+
+app.UseMiddleware<ExceptionMiddleware>(); // Use customer exception middle ware.
+
+app.UseStatusCodePagesWithReExecute("/errors/{}");
 
 app.UseHttpsRedirection(); // If used Http url - Will automatical redirect to Https urls
 
 app.UseAuthorization();
+
+app.UseSwaggerDocumentation(); // Custom Extension Middleware.
 
 app.UseStaticFiles(); // Added to serve static files from the API - Product Images
 
