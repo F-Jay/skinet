@@ -15,6 +15,8 @@ namespace API.Extensions
         {
             // Services - Ordering is not important.
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+            builder.Services.AddScoped<IBasketRepository, BasketRepository>();
             // Add Generic Service
             builder.Services.AddScoped(typeof(IGenericRepository<>), (typeof(GenericRepository<>)));
 

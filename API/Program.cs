@@ -5,6 +5,7 @@ using AutoMapper;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,12 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.Development.json")
             .Build();
 builder.Services.AddDbContext<StoreContext>(x => x.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(c => {
+    var _config = ConfigurationOptions.Parse(configuration.GetConnectionString("Redis"),
+    true);
+    return ConnectionMultiplexer.Connect(_config);
+});
 
 builder.AddApplicationServices(); // Custom Extension
 builder.AddSwaggerDocumentation(); // Custom Extension
