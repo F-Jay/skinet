@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using API.Errors;
 using Core.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Extensions
@@ -14,6 +15,9 @@ namespace API.Extensions
         public static IServiceCollection AddApplicationServices(this WebApplicationBuilder builder)
         {
             // Services - Ordering is not important.
+
+            builder.Services.AddScoped<ITokenService, TokenService>();
+
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();

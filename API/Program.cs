@@ -2,7 +2,10 @@ using API.Extensions;
 using API.Helpers;
 using API.Middleware;
 using AutoMapper;
+using Core.Entities.Identity;
 using Infrastructure.Data;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
@@ -23,6 +26,8 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
             .Build();
 builder.Services.AddDbContext<StoreContext>(x => x.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddDbContext<AppIdentityDbContext>(x => x.UseSqlite(configuration.GetConnectionString("IdentityConnection")));
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(c => {
     var _config = ConfigurationOptions.Parse(configuration.GetConnectionString("Redis"),
     true);
@@ -30,6 +35,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(c => {
 });
 
 builder.AddApplicationServices(); // Custom Extension
+builder.Services.AddIdentityServices(configuration); // Custom Extension
 builder.AddSwaggerDocumentation(); // Custom Extension
 
 builder.Services.AddCors( opt =>
@@ -54,6 +60,13 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<StoreContext>();
         await context.Database.MigrateAsync(); // Create Database If not already exists, and apply any pending migrations to the database.
         await StoreContextSeed.SeedAsync(context, loggerFactory); // Seed Data Into Database.
+
+        // Seed User Data into Identity DB.
+        var userManager = services.GetRequiredService<UserManager<AppUser>>();
+        var identityContext = services.GetRequiredService<AppIdentityDbContext>();
+        await identityContext.Database.MigrateAsync();
+        await AppIdentityDbContextSeed.SeedUsersAsync(userManager);
+
     }catch(Exception ex)
     {
         var logger = loggerFactory.CreateLogger<Program>();
@@ -72,6 +85,7 @@ app.UseHttpsRedirection(); // If used Http url - Will automatical redirect to Ht
 
 app.UseCors("CorsPolicy");
 
+app.UseAuthentication(); // UseAuthentication needs to be before - UseAuthorization
 app.UseAuthorization();
 
 app.UseSwaggerDocumentation(); // Custom Extension Middleware.
