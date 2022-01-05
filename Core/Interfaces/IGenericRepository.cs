@@ -13,8 +13,14 @@ namespace Core.Interfaces
         Task<T> GetByIdAsync(int id);
         Task<IReadOnlyList<T>> ListAllAsync();
         Task<T> GetEntityWithSpec(ISpecification<T> spec);
-        Task<IReadOnlyList<T>> ListAsync(ISpecification<T> spec); 
+        Task<IReadOnlyList<T>> ListAsync(ISpecification<T> spec);
 
         Task<int> CountAsync(ISpecification<T> spec);
+
+        void Add(T entity); // Unit of Work methods.
+
+        void Update(T entity); // Unit of Work methods.
+
+        void Delete(T entity); // Unit of Work methods.
     }
 }

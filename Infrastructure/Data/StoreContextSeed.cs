@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Core.Entities;
+using Core.Entities.OrderAggregate;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Data
@@ -26,6 +27,17 @@ namespace Infrastructure.Data
                     await context.SaveChangesAsync();
                 }
 
+                if(!context.ProductType.Any())
+                {
+                    var productTypesData = File.ReadAllText("../Infrastructure/Data/SeedData/types.json");
+                    var products = JsonSerializer.Deserialize<List<ProductType>>(productTypesData);
+                    foreach(var product in products){
+                        context.ProductType.Add(product);
+                    }
+
+                    await context.SaveChangesAsync();
+                }
+                
                 if(!context.Products.Any())
                 {
                     var productsData = File.ReadAllText("../Infrastructure/Data/SeedData/products.json");
@@ -37,16 +49,17 @@ namespace Infrastructure.Data
                     await context.SaveChangesAsync();
                 }
 
-                if(!context.ProductType.Any())
+                if(!context.DeliveryMethods.Any()) // If we dont have any Delivery Methods - Seed Data.
                 {
-                    var productTypesData = File.ReadAllText("../Infrastructure/Data/SeedData/types.json");
-                    var products = JsonSerializer.Deserialize<List<ProductType>>(productTypesData);
-                    foreach(var product in products){
-                        context.ProductType.Add(product);
+                    var dmData = File.ReadAllText("../Infrastructure/Data/SeedData/delivery.json");
+                    var methods = JsonSerializer.Deserialize<List<DeliveryMethod>>(dmData);
+                    foreach(var item in methods){
+                        context.DeliveryMethods.Add(item);
                     }
 
                     await context.SaveChangesAsync();
                 }
+
             }catch(Exception ex)
             {
                 var logger = loggerFactory.CreateLogger<StoreContextSeed>();
