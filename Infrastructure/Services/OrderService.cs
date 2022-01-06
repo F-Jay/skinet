@@ -30,9 +30,12 @@ namespace Infrastructure.Services
             foreach (var item in basket.Items)
             {
                 var productItem = await _unitOfWork.Repository<Product>().GetByIdAsync(item.Id);
+                if(productItem != null && productItem.Id != null && productItem.Name != null && productItem.PictureUrl != null){
                 var itemOrdered = new ProductItemOrdered(productItem.Id, productItem.Name, productItem.PictureUrl);
                 var orderItem = new OrderItem(itemOrdered, productItem.Price, item.Quantity);
                 items.Add(orderItem);
+                }
+               
             }
 
             // get delivery method from repo
@@ -53,7 +56,10 @@ namespace Infrastructure.Services
             if(result <= 0) return null; // Order was not saved - Something went wrong.
 
             // delete basket.
-            await _basketRepo.DeleteBasketAsync(basketId);
+            if(basketId != null && _basketRepo.GetBasketAsync(basketId) != null){
+                await _basketRepo.DeleteBasketAsync(basketId);
+            }
+           
 
             // return order
             return order;
