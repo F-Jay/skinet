@@ -10,6 +10,8 @@ export class PagerComponent implements OnInit {
   @Input() pageSize: number; // Input Property is something we receive from Parent Conponent.
   @Output() pageChange = new EventEmitter<number>(); // Child Component can emit output to Parent Conponent.
 
+  @Input() pageNumber: number;
+
   constructor() { }
 
   ngOnInit(): void {

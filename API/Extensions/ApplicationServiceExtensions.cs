@@ -16,11 +16,15 @@ namespace API.Extensions
         {
             // Services - Ordering is not important.
 
+            builder.Services.AddSingleton<IResponseCacheService, ResponseCacheService>();
+
             builder.Services.AddScoped<ITokenService, TokenService>();
 
             builder.Services.AddScoped<IOrderService, OrderService>();
 
-             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
 
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
